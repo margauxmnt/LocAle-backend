@@ -40,17 +40,23 @@ router.get('/get-beers', async (req, res) => {
 })
 
 
-router.get('/get-sellers', async (req, res) => {
-  let position = req.query.position
-  let beer = req.query.beer
+router.get('/get-sellers/:position/:id', async (req, res) => {
+
+  const sellerOk = [];
+  const sellers = await sellerModel.find().populate('stock');
+
+  for(let i = 0; i < sellers.length; i++){
+    sellers[i].stock.forEach(el => {
+      if(el.id === req.params.id) sellerOk.push(sellers[i])
+    })
+  }
 
   /**le backend reçois la position de l'utilisateur et la bière sélectionnée
    * récupère dans la DB tout les revendeurs, les trie en fonction de ceux qui ont la bière en stock
    * renvoie au front ces vendeurs en question 
    */
 
-  if (position && beer) res.json({ message: true, sellers: [] })
-  else res.json({ message: false })
+  res.json({sellers: sellerOk})
 })
 
 
