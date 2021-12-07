@@ -46,10 +46,13 @@ router.get('/get-breweries', async (req, res) => {
     // calcul des brasseries à moins de 20 kms de l'utilisateur
     for (let i = 0; i < breweries.length; i++) {
       const d = getDistanceFromLatLonInKm(position.coords.latitude, position.coords.longitude, breweries[i].latitude, breweries[i].longitude);
-      if (d <= 20) {
-        localBreweries.push(breweries[i]);
+      if (d <= 25) {
+        localBreweries.push({brewerie: breweries[i], distance: d});
       }
     };
+    //tri du tableau des brasseries de la plus proche à la moins proche
+    localBreweries.sort((a, b) => a.distance - b.distance);
+
     // ci-dessous condition token à modifier lors de l'intégration de la connection de l'utilisateur
     req.query.token == 15115 ?
       res.json({ message: true, breweries : localBreweries, user: {}, text: 'utilisateur connecté' }) :
