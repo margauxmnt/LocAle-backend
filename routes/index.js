@@ -28,9 +28,8 @@ function deg2rad(deg) {
 
 
 router.get('/get-breweries', async (req, res) => {
-  let position = req.query.position;
 
-  /* Le backend reçois la position de l'utilisateur et le token s'il est déjà connecté
+    /* Le backend reçois la position de l'utilisateur et le token s'il est déjà connecté
    * Si la position est valide on recherche dans la base de donnée les revendeurs de type brasserie
    * en fonction de la position de l'utilisateur on ne renvoie que les brasserie à moins de 20 km
    * - Si l'utilisateur est connecté, on renvoie ses données
@@ -38,10 +37,16 @@ router.get('/get-breweries', async (req, res) => {
    * - sinon message d'erreur
    */
 
-  if (position) {
+  //récupération de la position de l'utilisateur depuis le front
+  let position = JSON.parse(req.query.position);
+  if (position){
+  //récupération des brasseries de la base de données
+    let breweries = await sellerModel.find({type: "brewery"})
+    console.log(breweries);
+    // ci-dessous condition token à modifier lors de l'intégration de la connection de l'utilisateur
     req.query.token == 15115 ?
-      res.json({ message: true, breweries: [], user: {}, text: 'utilisateur déjà connecté' }) :
-      res.json({ message: true, breweries: [], text: "pas d'utilisateur" })
+      res.json({ message: true, breweries, user: {}, text: 'utilisateur connecté' }) :
+      res.json({ message: true, breweries, text: "pas d'utilisateur" })
   } else res.json({ message: false, text: 'geoloc non acceptée' })
 })
 
