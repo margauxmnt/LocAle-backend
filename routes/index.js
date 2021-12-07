@@ -8,10 +8,28 @@ const sellerModel = require('../model/sellers');
 const noteModel = require('../model/notes');
 
 
-router.get('/get-breweries', async (req, res) => {
-  let position = req.query.position;
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+  var R = 6371; // Radius of the earth in km
+  var dLat = deg2rad(lat2-lat1);  // deg2rad below
+  var dLon = deg2rad(lon2-lon1); 
+  var a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+    ; 
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  var d = R * c; // Distance in km
+  return d;
+}
 
-  /* Le backend reçois la position de l'utilisateur et le token s'il est déjà connecté
+function deg2rad(deg) {
+  return deg * (Math.PI/180)
+}
+
+
+router.get('/get-breweries', async (req, res) => {
+
+    /* Le backend reçois la position de l'utilisateur et le token s'il est déjà connecté
    * Si la position est valide on recherche dans la base de donnée les revendeurs de type brasserie
    * en fonction de la position de l'utilisateur on ne renvoie que les brasserie à moins de 20 km
    * - Si l'utilisateur est connecté, on renvoie ses données
@@ -19,10 +37,26 @@ router.get('/get-breweries', async (req, res) => {
    * - sinon message d'erreur
    */
 
+  //récupération de la position de l'utilisateur depuis le front
+  let position = JSON.parse(req.query.position);
   if (position) {
+    //récupération des brasseries de la base de données
+    let breweries = await sellerModel.find({ type: "brewery" });
+    let localBreweries = [];
+    // calcul des brasseries à moins de 20 kms de l'utilisateur
+    for (let i = 0; i < breweries.length; i++) {
+      const d = getDistanceFromLatLonInKm(position.coords.latitude, position.coords.longitude, breweries[i].latitude, breweries[i].longitude);
+      if (d <= 25) {
+        localBreweries.push({brewerie: breweries[i], distance: d});
+      }
+    };
+    //tri du tableau des brasseries de la plus proche à la moins proche
+    localBreweries.sort((a, b) => a.distance - b.distance);
+
+    // ci-dessous condition token à modifier lors de l'intégration de la connection de l'utilisateur
     req.query.token == 15115 ?
-      res.json({ message: true, breweries: [], user: {}, text: 'utilisateur déjà connecté' }) :
-      res.json({ message: true, breweries: [], text: "pas d'utilisateur" })
+      res.json({ message: true, breweries : localBreweries, user: {}, text: 'utilisateur connecté' }) :
+      res.json({ message: true, breweries : localBreweries, text: "pas d'utilisateur" })
   } else res.json({ message: false, text: 'geoloc non acceptée' })
 })
 
@@ -61,17 +95,29 @@ res.json({beers})
 })
 
 
-router.get('/get-sellers', async (req, res) => {
-  let position = req.query.position
-  let beer = req.query.beer
+router.get('/get-sellers/:position/:id', async (req, res) => {
+
+  const position = JSON.parse(req.params.position)
+  const sellerOk = [];
+  const sellers = await sellerModel.find().populate('stock');
+
+
+  for (let i = 0; i < sellers.length; i++) {
+    const d = getDistanceFromLatLonInKm(position.latitude, position.longitude, sellers[i].latitude, sellers[i].longitude)
+    
+    if(d <= 20){ // si c'est à moins de 20 km
+      sellers[i].stock.forEach(el => {
+        if (el.id === req.params.id) sellerOk.push(sellers[i])
+      })
+    }    
+  }
 
   /**le backend reçois la position de l'utilisateur et la bière sélectionnée
    * récupère dans la DB tout les revendeurs, les trie en fonction de ceux qui ont la bière en stock
    * renvoie au front ces vendeurs en question 
    */
 
-  if (position && beer) res.json({ message: true, sellers: [] })
-  else res.json({ message: false })
+  res.json({ sellers: sellerOk })
 })
 
 
@@ -114,7 +160,7 @@ router.get('/get-beers-n-notes', (req, res) => {
 //   await user.save();
 //   await beer.save();
 //   await newNote.save();
-  
+
 //   res.json({newNote})
 // })
 
