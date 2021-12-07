@@ -64,25 +64,20 @@ router.get('/get-breweries', async (req, res) => {
 router.get('/get-beers/:brewery', async (req, res) => {
   let breweryName = req.params.brewery
 
-  console.log(breweryName)
-
   let brewery = await sellerModel.find({type :'brewery'}).populate('stock')
 
   let beers
-
-  let notes = []
 
   brewery.forEach((e, i) => {
     if (e.name === breweryName) {
       beers = e.stock
     }
   })
-  beers.forEach(async e => {
-    let note = await beerModel.findById(e.id).populate('notes')
-    console.log(note)
-    notes.push(note) 
-    console.log(notes)
-  }) 
+  
+  // beers.forEach(async (el, i) => {
+  //   const beer = await beerModel.findById(el.id).populate('notes')
+  //   console.log('beer'+  + beer.notes)
+  // })
 
   /***le backend reçois un nom de brasserie
    * retrouve dans la DB la brasserie en question 
@@ -90,7 +85,6 @@ router.get('/get-beers/:brewery', async (req, res) => {
    * renvoie les notes dans redux
    */
 
-  console.log(notes)
 res.json({beers})
 })
 
