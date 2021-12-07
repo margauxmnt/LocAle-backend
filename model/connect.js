@@ -7,7 +7,7 @@ var options = {
 }
 
 // DB connection
-mongoose.connect(process.env.DB_CONN,
+mongoose.connect(process.env.CONNECT_DB,
     options,
     function (err) {
         console.log(err);

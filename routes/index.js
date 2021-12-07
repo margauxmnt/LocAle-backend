@@ -27,16 +27,37 @@ router.get('/get-breweries', async (req, res) => {
 })
 
 
-router.get('/get-beers', async (req, res) => {
-  let brewery = req.query.brewery
+router.get('/get-beers/:brewery', async (req, res) => {
+  let breweryName = req.params.brewery
 
-  /**le backend reçois un nom de brasserie
+  console.log(breweryName)
+
+  let brewery = await sellerModel.find({type :'brewery'}).populate('stock')
+
+  let beers
+
+  let notes = []
+
+  brewery.forEach((e, i) => {
+    if (e.name === breweryName) {
+      beers = e.stock
+    }
+  })
+  beers.forEach(async e => {
+    let note = await beerModel.findById(e.id).populate('notes')
+    console.log(note)
+    notes.push(note) 
+    console.log(notes)
+  }) 
+
+  /***le backend reçois un nom de brasserie
    * retrouve dans la DB la brasserie en question 
    * regarde dans les bières de la brasserie et les renvoie au front
    * renvoie les notes dans redux
    */
 
-  brewery ? res.json({ message: true, beers: [], notes: [] }) : res.json({ message: false })
+  console.log(notes)
+res.json({beers})
 })
 
 
