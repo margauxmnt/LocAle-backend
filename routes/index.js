@@ -39,14 +39,21 @@ router.get('/get-breweries', async (req, res) => {
 
   //récupération de la position de l'utilisateur depuis le front
   let position = JSON.parse(req.query.position);
-  if (position){
-  //récupération des brasseries de la base de données
-    let breweries = await sellerModel.find({type: "brewery"})
-    console.log(breweries);
+  if (position) {
+    //récupération des brasseries de la base de données
+    let breweries = await sellerModel.find({ type: "brewery" });
+    let localBreweries = [];
+    // calcul des brasseries à moins de 20 kms de l'utilisateur
+    for (let i = 0; i < breweries.length; i++) {
+      const d = getDistanceFromLatLonInKm(position.coords.latitude, position.coords.longitude, breweries[i].latitude, breweries[i].longitude);
+      if (d <= 20) {
+        localBreweries.push(breweries[i]);
+      }
+    };
     // ci-dessous condition token à modifier lors de l'intégration de la connection de l'utilisateur
     req.query.token == 15115 ?
-      res.json({ message: true, breweries, user: {}, text: 'utilisateur connecté' }) :
-      res.json({ message: true, breweries, text: "pas d'utilisateur" })
+      res.json({ message: true, breweries : localBreweries, user: {}, text: 'utilisateur connecté' }) :
+      res.json({ message: true, breweries : localBreweries, text: "pas d'utilisateur" })
   } else res.json({ message: false, text: 'geoloc non acceptée' })
 })
 
