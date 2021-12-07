@@ -8,6 +8,25 @@ const sellerModel = require('../model/sellers');
 const noteModel = require('../model/notes');
 
 
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+  var R = 6371; // Radius of the earth in km
+  var dLat = deg2rad(lat2-lat1);  // deg2rad below
+  var dLon = deg2rad(lon2-lon1); 
+  var a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+    ; 
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  var d = R * c; // Distance in km
+  return d;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI/180)
+}
+
+
 router.get('/get-breweries', async (req, res) => {
   let position = req.query.position;
 
@@ -42,13 +61,19 @@ router.get('/get-beers', async (req, res) => {
 
 router.get('/get-sellers/:position/:id', async (req, res) => {
 
+  const position = JSON.parse(req.params.position)
   const sellerOk = [];
   const sellers = await sellerModel.find().populate('stock');
 
-  for(let i = 0; i < sellers.length; i++){
-    sellers[i].stock.forEach(el => {
-      if(el.id === req.params.id) sellerOk.push(sellers[i])
-    })
+
+  for (let i = 0; i < sellers.length; i++) {
+    const d = getDistanceFromLatLonInKm(position.latitude, position.longitude, sellers[i].latitude, sellers[i].longitude)
+    
+    if(d <= 20){ // si c'est à moins de 20 km
+      sellers[i].stock.forEach(el => {
+        if (el.id === req.params.id) sellerOk.push(sellers[i])
+      })
+    }    
   }
 
   /**le backend reçois la position de l'utilisateur et la bière sélectionnée
@@ -56,7 +81,7 @@ router.get('/get-sellers/:position/:id', async (req, res) => {
    * renvoie au front ces vendeurs en question 
    */
 
-  res.json({sellers: sellerOk})
+  res.json({ sellers: sellerOk })
 })
 
 
@@ -99,7 +124,7 @@ router.get('/get-beers-n-notes', (req, res) => {
 //   await user.save();
 //   await beer.save();
 //   await newNote.save();
-  
+
 //   res.json({newNote})
 // })
 
