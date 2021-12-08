@@ -63,21 +63,22 @@ router.get('/get-breweries', async (req, res) => {
 
 router.get('/get-beers/:brewery', async (req, res) => {
   let breweryName = req.params.brewery
-
-  let brewery = await sellerModel.find({type :'brewery'}).populate('stock')
-
-  let beers
-
-  brewery.forEach((e, i) => {
-    if (e.name === breweryName) {
-      beers = e.stock
-    }
-  })
   
-  // beers.forEach(async (el, i) => {
-  //   const beer = await beerModel.findById(el.id).populate('notes')
-  //   console.log('beer'+  + beer.notes)
-  // })
+  let sellers = await sellerModel.find({type: 'brewery'}).populate('stock');
+  let beers = await beerModel.find().populate({path: 'notes', populate: {path:'owner'} });
+
+  let stock;
+  sellers.forEach(el => {
+    if(el.name === breweryName) stock = el.stock
+  })
+
+  const beerWithNote = [];
+  beers.forEach(el => {
+    stock.forEach(e => {
+      if(e.id === el.id) beerWithNote.push(el)
+    })
+  })
+
 
   /***le backend reçois un nom de brasserie
    * retrouve dans la DB la brasserie en question 
@@ -85,7 +86,7 @@ router.get('/get-beers/:brewery', async (req, res) => {
    * renvoie les notes dans redux
    */
 
-res.json({beers})
+res.json(beerWithNote)
 })
 
 
@@ -94,17 +95,19 @@ router.get('/get-sellers/:position/:id', async (req, res) => {
   const position = JSON.parse(req.params.position)
   const sellerOk = [];
   const sellers = await sellerModel.find().populate('stock');
+  console.log(req.params.id)
 
 
   for (let i = 0; i < sellers.length; i++) {
     const d = getDistanceFromLatLonInKm(position.latitude, position.longitude, sellers[i].latitude, sellers[i].longitude)
     
-    if(d <= 20){ // si c'est à moins de 20 km
+    if(d <= 26){ // si c'est à moins de 20 km
       sellers[i].stock.forEach(el => {
         if (el.id === req.params.id) sellerOk.push(sellers[i])
       })
     }    
   }
+
 
   /**le backend reçois la position de l'utilisateur et la bière sélectionnée
    * récupère dans la DB tout les revendeurs, les trie en fonction de ceux qui ont la bière en stock
@@ -115,16 +118,33 @@ router.get('/get-sellers/:position/:id', async (req, res) => {
 })
 
 
-router.get('/get-beers-n-notes', (req, res) => {
+router.get('/get-beers-n-notes', async (req, res) => {
 
   /**récupère en DB les bières et les notes 
    * les renvoies au front 
    */
+  const breweries = await sellerModel.find({type: 'brewery'});
+  const beers = await beerModel.find().populate('notes');
 
-  res.json({ message: true, beers: [], notes: [] })
+  // console.log(breweries)
+
+  let datas = [];
+  breweries.forEach((el, i) => datas.push({key: i, id: el.id, name: el.name, icon: ""}))
+  beers.forEach((el, i) => {
+    let avg = 0;
+    el.notes.forEach(e => avg += e.note);
+    if(el.notes !== 0) avg = avg / el.notes.length;
+    datas.push({key: (i + breweries.length), id: el.id, name: el.name, icon: "", note: avg});
+  })
+
+  res.json(datas)
 })
 
 
+router.get('/get-beer/:id', async (req, res) => {
+  const beer = await beerModel.findById(req.params.id).populate({path: 'notes', populate: {path:'owner'} });
+  res.json(beer);
+})
 
 
 // --- ROUTE POUR AJOUTER EN DB --- //
