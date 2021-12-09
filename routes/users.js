@@ -1,12 +1,10 @@
 var express = require('express');
+const beerModel = require('../model/beers');
+const noteModel = require('../model/notes');
+const userModel = require('../model/users');
 var router = express.Router();
 
 router.post('/add-note', async (req, res) => {
-  let note = req.body.note
-  let comment = req.body.comment
-  let token = req.body.token
-  let beer = req.body.beer
-
   /*
    * le backend reçois ce qu'il faut pour créer un nouveau model de note
    * ajoute cette note en DB et ajoute en clé étrangère dans l'utilisateur
@@ -14,8 +12,24 @@ router.post('/add-note', async (req, res) => {
    * côté front la note sera ajoutée dans le store de redux
    */
 
-  if(note && comment && token && beer) res.json({message: true})
-  else res.json({message: false})
+  const user = await userModel.findOne({token: req.body.token}).populate('notes')
+  const beer = await beerModel.findById(req.body.beerId).populate('notes')
+
+  const newNote = new noteModel({
+    note: req.body.note,
+    comment: req.body.comment,
+    date: new Date,
+    owner: user.id,
+    beer: beer.id,
+  })
+  const saveNote = await newNote.save()
+
+  user.notes.push(saveNote.id);
+  await user.save()
+  beer.notes.push(saveNote.id);
+  await beer.save()
+
+  res.json(saveNote)
 })
 
 
