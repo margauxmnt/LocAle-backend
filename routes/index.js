@@ -80,7 +80,6 @@ router.get('/get-sellers/:position/:id', async (req, res) => {
   const position = JSON.parse(req.params.position)
   const sellerOk = [];
   const sellers = await sellerModel.find().populate('stock');
-  console.log(req.params.id)
 
 
   for (let i = 0; i < sellers.length; i++) {
@@ -126,7 +125,6 @@ router.get('/get-brewery/:id', async (req, res) => {
 })
 
 router.get('/get-brewery-from-beer/:beerId', async (req, res) => {
-  console.log(req.params.beerId)
   // récupérer la brasserie qui a cet id en stock
   const brewery = await sellerModel.find({type: 'brewery'}).populate('stock')
   let selectBrewery;
@@ -137,6 +135,14 @@ router.get('/get-brewery-from-beer/:beerId', async (req, res) => {
   })
   
   res.json(selectBrewery)
+})
+
+
+router.get('/get-wishlist/:token', async (req, res) => {
+  console.log(req.params.token)
+  const user = await userModel.findOne({token: req.params.token}).populate({path: 'wishlist', populate: {path:'notes'} })
+  
+  res.json(user.wishlist)
 })
 
 

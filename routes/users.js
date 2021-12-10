@@ -69,5 +69,15 @@ router.post('/sign-up', async function(req,res,next){
 })
 
 
+router.get('/add-To-Wishlist/:beerId/:token', async (req, res) => {
+  const user = await userModel.findOne({token: req.params.token})
+  // on l'ajoute en wishlist 
+})
+
+router.get('/remove-To-Wishlist/:beerId/:token', async (req, res) => {
+  const user = await userModel.findOne({token: req.params.token})
+  // on retire de la wishlist
+})
+
 module.exports = router;
 
