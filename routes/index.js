@@ -29,14 +29,6 @@ function deg2rad(deg) {
 
 router.get('/get-breweries', async (req, res) => {
 
-    /* Le backend reçois la position de l'utilisateur et le token s'il est déjà connecté
-   * Si la position est valide on recherche dans la base de donnée les revendeurs de type brasserie
-   * en fonction de la position de l'utilisateur on ne renvoie que les brasserie à moins de 20 km
-   * - Si l'utilisateur est connecté, on renvoie ses données
-   * - Sinon si la geoloc est ok on renvoie les brasseries
-   * - sinon message d'erreur
-   */
-
   //récupération de la position de l'utilisateur depuis le front
   let position = JSON.parse(req.query.position);
   if (position) {
@@ -79,13 +71,6 @@ router.get('/get-beers/:breweryId', async (req, res) => {
     })
   })
 
-
-  /***le backend reçois un nom de brasserie
-   * retrouve dans la DB la brasserie en question 
-   * regarde dans les bières de la brasserie et les renvoie au front
-   * renvoie les notes dans redux
-   */
-
 res.json(beerWithNote)
 })
 
@@ -108,25 +93,14 @@ router.get('/get-sellers/:position/:id', async (req, res) => {
     }    
   }
 
-
-  /**le backend reçois la position de l'utilisateur et la bière sélectionnée
-   * récupère dans la DB tout les revendeurs, les trie en fonction de ceux qui ont la bière en stock
-   * renvoie au front ces vendeurs en question 
-   */
-
   res.json({ sellers: sellerOk })
 })
 
 
 router.get('/get-beers-n-notes', async (req, res) => {
 
-  /**récupère en DB les bières et les notes 
-   * les renvoies au front 
-   */
   const breweries = await sellerModel.find({type: 'brewery'});
   const beers = await beerModel.find().populate('notes');
-
-  // console.log(breweries)
 
   let datas = [];
   breweries.forEach((el, i) => datas.push({key: i, id: el.id, name: el.name, icon: ""}))
@@ -149,6 +123,20 @@ router.get('/get-beer/:id', async (req, res) => {
 router.get('/get-brewery/:id', async (req, res) => {
   const brewery = await sellerModel.findById(req.params.id);
   res.json(brewery)
+})
+
+router.get('/get-brewery-from-beer/:beerId', async (req, res) => {
+  console.log(req.params.beerId)
+  // récupérer la brasserie qui a cet id en stock
+  const brewery = await sellerModel.find({type: 'brewery'}).populate('stock')
+  let selectBrewery;
+  brewery.forEach(el => {
+    el.stock.forEach(e => {
+      if(e.id === req.params.beerId) selectBrewery = el
+    })
+  })
+  
+  res.json(selectBrewery)
 })
 
 
