@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+const userModel = require('../model/users');
 
 router.post('/add-note', async (req, res) => {
   let note = req.body.note
@@ -56,6 +57,19 @@ router.post('/sign-up', (req, res) => {
 
   if(pseudo && email && password) res.json({message: true, user: {}})
   else res.json({message: false, text: 'info manquante'})
+})
+
+router.get('/get-user-infos', async (req, res) => {
+  //récupération du token de l'utilisateur depuis le front
+  //let userToken = req.query.token;
+  let userToken = "XAL39AFZCGMyhLD6Quw11nXJHggbrm4A";
+
+  //récupération des infos de l'utilisateur en BDD
+  let userInfos = await userModel.find({token: userToken}).populate({path: 'notes', populate: {path:'beer'} });
+
+  userToken == "XAL39AFZCGMyhLD6Quw11nXJHggbrm4A" ?
+      res.json({ message: true, user: userInfos }) :
+      res.json({ message: false })
 })
 
 module.exports = router;
