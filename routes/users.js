@@ -3,13 +3,9 @@ const beerModel = require('../model/beers');
 const noteModel = require('../model/notes');
 const userModel = require('../model/users');
 var router = express.Router();
-const userModel = require('../model/users');
 
 var bcrypt = require('bcrypt');
 var uid2 = require('uid2');
-
-var userModel = require('../model/users')
-
 
 router.post('/add-note', async (req, res) => {
   /*
