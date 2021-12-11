@@ -70,14 +70,30 @@ router.post('/sign-up', async function(req,res,next){
 
 
 router.get('/add-To-Wishlist/:beerId/:token', async (req, res) => {
-  const user = await userModel.findOne({token: req.params.token})
-  // on l'ajoute en wishlist 
+  const user = await userModel.findOne({token: req.params.token}).populate('wishlist');
+
+  let message = 'Bière ajoutée dans les favorites !';
+  let add = false;
+  let indice;
+
+  
+  user.wishlist.forEach((el, i) => {
+    if(el.id === req.params.beerId) {
+      add = true;
+      indice = i;
+    }
+  })
+
+  if(add){
+    user.wishlist.splice(indice, 1);
+    message = 'Bière retirée.';
+  }else user.wishlist.push(req.params.beerId)
+
+  await user.save()
+  res.json({message, wishlist: user.wishlist})
 })
 
-router.get('/remove-To-Wishlist/:beerId/:token', async (req, res) => {
-  const user = await userModel.findOne({token: req.params.token})
-  // on retire de la wishlist
-})
+
 
 module.exports = router;
 

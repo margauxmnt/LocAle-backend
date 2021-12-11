@@ -53,11 +53,12 @@ router.get('/get-breweries', async (req, res) => {
 })
 
 
-router.get('/get-beers/:breweryId', async (req, res) => {
+router.get('/get-beers/:breweryId/:token', async (req, res) => {
   let breweryId = req.params.breweryId
   
   let sellers = await sellerModel.find({type: 'brewery'}).populate('stock');
   let beers = await beerModel.find().populate({path: 'notes', populate: {path:'owner'} });
+  let user = await userModel.findOne({token: req.params.token}).populate('wishlist')
 
   let stock;
   sellers.forEach(el => {
@@ -71,7 +72,9 @@ router.get('/get-beers/:breweryId', async (req, res) => {
     })
   })
 
-res.json(beerWithNote)
+  if(user){
+    res.json({wishlist: user.wishlist, beers: beerWithNote})
+  }else res.json({beers: beerWithNote})
 })
 
 
@@ -139,7 +142,7 @@ router.get('/get-brewery-from-beer/:beerId', async (req, res) => {
 
 
 router.get('/get-wishlist/:token', async (req, res) => {
-  console.log(req.params.token)
+ 
   const user = await userModel.findOne({token: req.params.token}).populate({path: 'wishlist', populate: {path:'notes'} })
   
   res.json(user.wishlist)
