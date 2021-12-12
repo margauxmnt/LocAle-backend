@@ -34,11 +34,11 @@ router.post('/sign-in', async function(req,res,next){
   
   const email = req.body.email
 
-  const user = await userModel.findOne({email: email.toLowerCase()})
+  const user = await userModel.findOne({email: email.toLowerCase()}).populate('wishlist')
   
     if(user){
       if(bcrypt.compareSync(req.body.password, user.password)){
-        res.json({token: user.token, error: ''})
+        res.json({token: user.token, error: '', wishlist: user.wishlist})
       } else res.json({error: 'Mot de passe incorrect.'})      
     } else res.json({error: 'Pas de compte avec cette adresse.'})
 })
@@ -60,9 +60,9 @@ router.post('/sign-up', async function(req,res,next){
         password: bcrypt.hashSync(req.body.password, 10),
         token: uid2(32),
       })
-      let saveUser = await newUser.save()
+      const saveUser = await newUser.save()
 
-      res.json({token: saveUser.token, error: ''})
+      res.json({token: saveUser.token, error: '', password: saveUser.password, email: saveUser.email})
     }else res.json({error: 'Vous avez déjà un compte.'})
   }else res.json({error: 'Pseudo déjà pris.'})  
 })
@@ -95,14 +95,10 @@ router.get('/add-To-Wishlist/:beerId/:token', async (req, res) => {
 
 
 router.get('/get-user-infos', async (req, res) => {
-  //récupération du token de l'utilisateur depuis le front
-  //let userToken = req.query.token;
-  let userToken = "XAL39AFZCGMyhLD6Quw11nXJHggbrm4A";
-
   //récupération des infos de l'utilisateur en BDD
-  let userInfos = await userModel.find({token: userToken}).populate({path: 'notes', populate: {path:'beer'} });
+  let userInfos = await userModel.findOne({token: req.query.token}).populate({path: 'notes', populate: {path:'beer'} });
 
-  userToken == "XAL39AFZCGMyhLD6Quw11nXJHggbrm4A" ?
+  userInfos ?
       res.json({ message: true, user: userInfos }) :
       res.json({ message: false })
 })

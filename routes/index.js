@@ -56,12 +56,11 @@ router.get('/get-breweries', async (req, res) => {
 })
 
 
-router.get('/get-beers/:breweryId/:token', async (req, res) => {
+router.get('/get-beers/:breweryId', async (req, res) => {
   let breweryId = req.params.breweryId
   
   let sellers = await sellerModel.find({type: 'brewery'}).populate('stock');
   let beers = await beerModel.find().populate({path: 'notes', populate: {path:'owner'} });
-  let user = await userModel.findOne({token: req.params.token}).populate('wishlist')
 
   let stock;
   sellers.forEach(el => {
@@ -75,9 +74,7 @@ router.get('/get-beers/:breweryId/:token', async (req, res) => {
     })
   })
 
-  if(user){
-    res.json({wishlist: user.wishlist, beers: beerWithNote})
-  }else res.json({beers: beerWithNote})
+  res.json({beers: beerWithNote})
 })
 
 
@@ -120,18 +117,21 @@ router.get('/get-beers-n-notes', async (req, res) => {
 })
 
 
+// récupère uniquement une bière via son ID 
 router.get('/get-beer/:id', async (req, res) => {
   const beer = await beerModel.findById(req.params.id).populate({path: 'notes', populate: {path:'owner'} });
   res.json(beer);
 })
 
+// récupère uniquement une brasserie via son ID
 router.get('/get-brewery/:id', async (req, res) => {
   const brewery = await sellerModel.findById(req.params.id);
   res.json(brewery)
 })
 
+// récupérer la brasserie qui a cette bière en stock 
+// (quand on revient de la page bière vers la page liste)
 router.get('/get-brewery-from-beer/:beerId', async (req, res) => {
-  // récupérer la brasserie qui a cet id en stock
   const brewery = await sellerModel.find({type: 'brewery'}).populate('stock')
   let selectBrewery;
   brewery.forEach(el => {
