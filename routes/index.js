@@ -29,6 +29,8 @@ function deg2rad(deg) {
 
 router.get('/get-breweries', async (req, res) => {
 
+  const user = await userModel.findOne({token: req.query.token}).populate('wishlist');
+
   //récupération de la position de l'utilisateur depuis le front
   let position = JSON.parse(req.query.position);
   if (position) {
@@ -46,8 +48,9 @@ router.get('/get-breweries', async (req, res) => {
     localBreweries.sort((a, b) => a.distance - b.distance);
 
     // ci-dessous condition token à modifier lors de l'intégration de la connection de l'utilisateur
-    req.query.token == 15115 ?
-      res.json({ message: true, breweries : localBreweries, user: {}, text: 'utilisateur connecté' }) :
+    
+    user ?
+      res.json({ message: true, breweries : localBreweries, user: user, text: 'utilisateur connecté' }) :
       res.json({ message: true, breweries : localBreweries, text: "pas d'utilisateur" })
   } else res.json({ message: false, text: 'geoloc non acceptée' })
 })
@@ -140,13 +143,6 @@ router.get('/get-brewery-from-beer/:beerId', async (req, res) => {
   res.json(selectBrewery)
 })
 
-
-router.get('/get-wishlist/:token', async (req, res) => {
- 
-  const user = await userModel.findOne({token: req.params.token}).populate({path: 'wishlist', populate: {path:'notes'} })
-  
-  res.json(user.wishlist)
-})
 
 
 // --- ROUTE POUR AJOUTER EN DB --- //
