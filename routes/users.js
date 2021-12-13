@@ -26,7 +26,7 @@ router.post('/add-note', async (req, res) => {
   beer.notes.push(saveNote.id);
   await beer.save()
 
-  res.json(saveNote)
+  res.json({saveNote, beer})
 })
 
 
