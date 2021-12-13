@@ -103,5 +103,13 @@ router.get('/get-user-infos', async (req, res) => {
       res.json({ message: false })
 })
 
+
+router.post('/edit-pseudo', async (req, res) => {
+  let user = await userModel.updateOne({token: req.body.token}, {pseudo: req.body.pseudo})
+  user ?
+  res.json({message: true, user}) :
+  res.json({message: false})
+})
+
 module.exports = router;
 
