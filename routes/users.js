@@ -59,6 +59,7 @@ router.post('/sign-up', async function(req,res,next){
         insert_date: new Date(),
         password: bcrypt.hashSync(req.body.password, 10),
         token: uid2(32),
+        avatar: req.body.avatar,
       })
       const saveUser = await newUser.save()
 
@@ -99,7 +100,7 @@ router.get('/get-user-infos', async (req, res) => {
   let userInfos = await userModel.findOne({token: req.query.token}).populate({path: 'notes', populate: {path:'beer'} });
 
   userInfos ?
-      res.json({ message: true, user: userInfos }) :
+      res.json({ message: true, user: userInfos, userNotes: userInfos.notes }) :
       res.json({ message: false })
 })
 
@@ -109,6 +110,12 @@ router.post('/edit-pseudo', async (req, res) => {
   user ?
   res.json({message: true, user}) :
   res.json({message: false})
+})
+
+
+router.post('/update-picture', async (req, res) => {
+  // reçois une uri, l'ajoute dans l'utilisateur et renvoie l'utilisateur
+  console.log(req.body.avatar)
 })
 
 module.exports = router;
