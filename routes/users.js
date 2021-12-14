@@ -1,8 +1,18 @@
-var express = require('express');
+const express = require('express');
 const beerModel = require('../model/beers');
 const noteModel = require('../model/notes');
 const userModel = require('../model/users');
-var router = express.Router();
+const router = express.Router();
+const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const uniqid = require('uniqid');
+const request = require('sync-request');
+
+cloudinary.config({   
+ cloud_name: process.env.CLOUD_NAME,
+ api_key: process.env.API_KEY,
+ api_secret: process.env.API_SECRET 
+});
 
 var bcrypt = require('bcrypt');
 var uid2 = require('uid2');
@@ -117,6 +127,9 @@ router.post('/update-picture', async (req, res) => {
   // reçois une uri, l'ajoute dans l'utilisateur et renvoie l'utilisateur
   console.log(req.body.avatar)
 })
+
+
+
 
 module.exports = router;
 
