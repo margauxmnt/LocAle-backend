@@ -82,12 +82,11 @@ router.get('/get-sellers/:position/:id', async (req, res) => {
 
   const position = JSON.parse(req.params.position)
   const sellerOk = [];
-  const sellers = await sellerModel.find().populate('stock');
-
+  const sellers = await sellerModel.find().populate('stock').exec();
 
   for (let i = 0; i < sellers.length; i++) {
     const d = getDistanceFromLatLonInKm(position.latitude, position.longitude, sellers[i].latitude, sellers[i].longitude)
-    
+
     if(d <= 26){ // si c'est à moins de 20 km
       sellers[i].stock.forEach(el => {
         if (el.id === req.params.id) sellerOk.push(sellers[i])
@@ -101,16 +100,22 @@ router.get('/get-sellers/:position/:id', async (req, res) => {
 
 router.get('/get-beers-n-notes', async (req, res) => {
 
-  const breweries = await sellerModel.find({type: 'brewery'});
+  const breweries = await sellerModel.find({type: 'brewery'}).populate('stock');
   const beers = await beerModel.find().populate('notes');
 
   let datas = [];
   breweries.forEach((el, i) => datas.push({key: i, id: el.id, name: el.name, icon: ""}))
   beers.forEach((el, i) => {
+    let brewery;
+    breweries.forEach(e => {
+      e.stock.forEach(ele => {
+        if(ele.id === el.id) brewery = e.name;
+      })
+    })
     let avg = 0;
     el.notes.forEach(e => avg += e.note);
     if(el.notes !== 0) avg = avg / el.notes.length;
-    datas.push({key: (i + breweries.length), id: el.id, name: el.name, icon: "", note: avg});
+    datas.push({key: (i + breweries.length), id: el.id, name: el.name, icon: "", note: avg, brewery: brewery});
   })
 
   res.json(datas)
