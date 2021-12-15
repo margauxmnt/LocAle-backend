@@ -28,11 +28,12 @@ router.post('/add-note', async (req, res) => {
     owner: user.id,
     beer: beer.id,
   })
-  const saveNote = await newNote.save()
+  const savedNote = await newNote.save()
+  const saveNote = await noteModel.findById(savedNote.id).populate('owner')
 
-  user.notes.push(saveNote.id);
+  user.notes.unshift(saveNote.id);
   await user.save()
-  beer.notes.push(saveNote.id);
+  beer.notes.unshift(saveNote.id);
   await beer.save()
 
   res.json({saveNote, beer})
