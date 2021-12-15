@@ -6,7 +6,6 @@ const router = express.Router();
 const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
 const uniqid = require('uniqid');
-const request = require('sync-request');
 
 cloudinary.config({   
  cloud_name: process.env.CLOUD_NAME,
@@ -29,11 +28,12 @@ router.post('/add-note', async (req, res) => {
     owner: user.id,
     beer: beer.id,
   })
-  const saveNote = await newNote.save()
+  const savedNote = await newNote.save()
+  const saveNote = await noteModel.findById(savedNote.id).populate('owner')
 
-  user.notes.push(saveNote.id);
+  user.notes.unshift(saveNote.id);
   await user.save()
-  beer.notes.push(saveNote.id);
+  beer.notes.unshift(saveNote.id);
   await beer.save()
 
   res.json({saveNote, beer})
@@ -127,8 +127,27 @@ router.post('/edit-pseudo', async (req, res) => {
 
 
 router.post('/update-picture', async (req, res) => {
-  // reçois une uri, l'ajoute dans l'utilisateur et renvoie l'utilisateur
-  console.log(req.body.avatar)
+  //recoit le chemin vers l'image ajoutée par l'utilisateur
+  //la sauvegarde dans un dossier temporaire en local
+  //lui crée un nom d'image unique
+  const imagePath = `./tmp/${uniqid()}.jpg`;
+  let resultCopy = await req.files.avatar.mv(imagePath);
+
+  if(!resultCopy) {
+    //envoie sur cloudinary pour heberger l'image 
+    const cloudResult = await cloudinary.uploader.upload(imagePath, {folder: 'LocAleUser'});
+    //suppression du fichier dans le dossier temporaire
+    fs.unlinkSync(imagePath);
+    //ajout de l'url de l'image en BDD de l'user
+    let userToken = req.files.avatar.name;
+    let user = await userModel.updateOne({token: userToken}, {avatar: cloudResult.url});
+    let userInfos =  await userModel.findOne({avatar: cloudResult.url})
+    
+    res.json({result: true, user: userInfos});      
+  } else {
+    res.json({result: false, message: resultCopy} );
+  }
+
 })
 
 
