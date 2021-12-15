@@ -8,6 +8,11 @@ const sellerModel = require('../model/sellers');
 const noteModel = require('../model/notes');
 
 
+router.get('/deletenotes', async (req, res) =>{
+  await noteModel.deleteMany()
+})
+
+
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   var R = 6371; // Radius of the earth in km
   var dLat = deg2rad(lat2-lat1);  // deg2rad below
@@ -193,67 +198,71 @@ router.get('/get-brewery-from-beer/:beerId', async (req, res) => {
 //   res.json({user})
 // })
 
-// router.get('/add-beer', async (req, res) => {
-//   const newBeer = new beerModel({
-//     name: "l'Iconoclaste",
-//     slogan: "L’amertume est prononcée comme il se doit et les saveurs tournent autour des agrumes.",
-//     alcool: 5.6,
-//     type: 'Indian Pale Ale',
-//     picture: 'https://www.domainedumanchot.com/wp-content/uploads/2021/01/LICONOCLASTE-Biere-du-MANCHOT.jpg'
-//   })
-//   const beer = await newBeer.save()
-//   res.json({beer})
-// })
+router.get('/add-beer', async (req, res) => {
+  const newBeer = new beerModel({
+    name: "la Grand Cru Triple",
+    slogan: "Doublement céréalée, triplement épicée... Simplement complexe ! La Grand Cru Triple vous fera voyager le temps d’une gorgée.",
+    alcool: 9,
+    type: 'Triple',
+    picture: 'https://www.lasoyeuse.fr/wp-content/uploads/2020/06/GC-triple-1.jpg'
+  })
+  const beer = await newBeer.save()
+  res.json({beer})
+})
 
-// router.get('/add-brewery', async (req, res) => {
-//   const beer1 = await beerModel.findById('61ac6550e1cc446be11f5230')
-//   const beer2 = await beerModel.findById('61ac6550e1cc446be11f5230')
-//   const beer3 = await beerModel.findById('61ac6484ea5d3f555016db0a')
-//   const beer4 = await beerModel.findById('61ac64302f7879254145d955')
-//   const newSeller = new sellerModel({
-//     type: 'shop',
-//     name: "VSOP Gourmet",
-//     description: "",
-//     adress: "35 Rue du Pont, 69390 Vernaison",
-//     latitude: 45.6476243,
-//     longitude: 4.8123745,
-//     website: 'http://www.vsop-gourmet.fr/',
-//     stock: [beer1.id, beer2.id, beer3.id, beer4.id],
-//     pictures: [],
-//     hours: [
-//       {
-//         day: 0,
-//         openings: '10h - 12h'
-//       },
-//       {
-//         day: 1,
-//         openings: 'Fermé'
-//       },
-//       {
-//         day: 2,
-//         openings: '9h - 12h30 / 15h30 - 19h'
-//       },
-//       {
-//         day: 3,
-//         openings: '9h - 12h30 / 15h30 - 19h'
-//       },
-//       {
-//         day: 4,
-//         openings: '9h - 12h30 / 15h30 - 19h'
-//       },
-//       {
-//         day: 5,
-//         openings: '9h - 12h30 / 15h30 - 21h'
-//       },
-//       {
-//         day: 6,
-//         openings: '9h - 13h / 15h30 - 19h'
-//       },
-//     ]
-//   })
-//   const seller = await newSeller.save();
-//   res.json({seller})
-// })
+router.get('/add-brewery', async (req, res) => {
+  const beer1 = await beerModel.findById('61ba074285b8a53fb6ed31b0')
+  const beer2 = await beerModel.findById('61ba0789f6edad55bc485726')
+  const beer3 = await beerModel.findById('61ba07ebd999a57f857ea300')
+  const beer4 = await beerModel.findById('61ba082d88775e5c063d32dc')
+  const beer5 = await beerModel.findById('61ba08d2d085926fc89cb253')
+  const beer6 = await beerModel.findById('61ba09336dd04912599fcab3')
+  const beer7 = await beerModel.findById('61ba099072f6ea2832a60635')
+  const beer8 = await beerModel.findById('61ba09e30083d24b9927a5f7')
+  const newSeller = new sellerModel({
+    type: 'shop',
+    name: "La Chaume",
+    description: "",
+    adress: "44 Gd Rue de Vaise, 69009 Lyon",
+    latitude: 45.773807012370696,
+    longitude: 4.808436001096112,
+    website: 'http://www.lachaume-fromagerie.fr/',
+    stock: [beer1.id, beer2.id, beer3.id, beer4.id, beer5.id, beer6.id, beer7.id, beer8.id],
+    pictures: [],
+    hours: [
+      {
+        day: 0,
+        openings: '10h - 13h'
+      },
+      {
+        day: 1,
+        openings: '9h - 19h'
+      },
+      {
+        day: 2,
+        openings: '9h - 14h / 16h - 19h'
+      },
+      {
+        day: 3,
+        openings: '9h - 14h / 16h - 19h'
+      },
+      {
+        day: 4,
+        openings: '9h - 14h / 16h - 19h'
+      },
+      {
+        day: 5,
+        openings: '9h - 19h'
+      },
+      {
+        day: 6,
+        openings: '9h - 19h'
+      },
+    ]
+  })
+  const seller = await newSeller.save();
+  res.json({seller})
+})
 
 
 
