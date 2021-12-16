@@ -44,7 +44,7 @@ router.post('/sign-in', async function(req,res,next){
   
   const email = req.body.email
 
-  const user = await userModel.findOne({email: email.toLowerCase()}).populate('wishlist')
+  const user = await userModel.findOne({email: email.toLowerCase()}).populate({path: 'wishlist', populate: {path:'notes'} });
   
     if(user){
       if(bcrypt.compareSync(req.body.password, user.password) 
@@ -83,7 +83,7 @@ router.post('/sign-up', async function(req,res,next){
 
 
 router.get('/add-To-Wishlist/:beerId/:token', async (req, res) => {
-  const user = await userModel.findOne({token: req.params.token}).populate('wishlist');
+  const user = await userModel.findOne({token: req.params.token}).populate({path: 'wishlist', populate: {path:'notes'} });
 
   let message = 'Bière ajoutée dans les favorites !';
   let add = false;
